@@ -20,6 +20,7 @@ const player2 = {
     console.log(this.name + ' Fight...');
   }
 };
+let attackingPlayer = randomize(1, 2);
 
 // Функция создания DOM-элемента (имя тега, строка с названиями классов элемента, атрибуты элемента)
 function getElement(tagName, stringClassNames, attributes) {
@@ -57,32 +58,40 @@ function createPlayer(player) {
   return $player;
 }
 
+function randomize(min, max) {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+}
+
 // Функция выявляет победителя
-function playerLose(player) {
-  const winner = player.id > 1 ? player1.name : player2.name;
+function playerWins(player) {
   const $loseTitle = getElement('div', 'loseTitle', {
-    textContent: `${winner} wins!`,
+    textContent: `${player.name} wins!`,
   });
-  return $loseTitle;
+  $arena.append($loseTitle);
+  $randomButton.disabled = true;
+  return;
 }
 
 // Функция изменения hp игрока
 function changeHP(player) {
   const $playerLife = document.querySelector(`.player${player.id} .life`);
-  player.hp -= Math.floor(Math.random() * 20 + 1);
-  if (player.hp <= 0) {
-    player.hp = 0;
-    $randomButton.disabled = true;
-    $arena.append(playerLose(player));
-  }
+  player.hp -= randomize(1, 20);
+  if (player.hp <= 0) player.hp = 0;
   $playerLife.style.width = player.hp + '%';
-  return;
+  return player.hp;
 }
 
 $randomButton.addEventListener('click', () => {
-  const attackingPlayer = Math.floor(Math.random() * 2 + 1);
-  attackingPlayer < 2 ? changeHP(player2) : changeHP(player1);
-})
+  if (attackingPlayer < 2) {
+    changeHP(player2);
+    if (player2.hp <= 0) playerWins(player1);
+    attackingPlayer = player2.id;
+  } else {
+    changeHP(player1);
+    if (player1.hp <= 0) playerWins(player2);
+    attackingPlayer = player1.id;
+  }
+});
 
 $arena.append(createPlayer(player1));
 $arena.append(createPlayer(player2));
